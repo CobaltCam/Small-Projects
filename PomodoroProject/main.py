@@ -11,8 +11,16 @@ SHORT_BREAK_MIN = 5
 LONG_BREAK_MIN = 20
 CHECKMARK = "✔"
 REPS = 1
-
+mark = ""
+timer = None
 # ---------------------------- TIMER RESET ------------------------------- # 
+def reset_timer():
+    global REPS
+    window.after_cancel(timer)
+    timer_label.config(text="Click Start")
+    check_label.config(text="", fg=GREEN)
+    canvas.itemconfig(timer_text, text="00:00")
+    REPS = 1
 
 # ---------------------------- TIMER MECHANISM ------------------------------- # 
 def start_timer():
@@ -20,18 +28,21 @@ def start_timer():
 
     if REPS % 2 == 1:
         timer_label.config(text="Work", font=("Comic Sans", 24, "bold"), fg=GREEN)
-        countdown(1 * 60)
+        countdown(WORK_MIN * 60)
     elif REPS % 2 == 0:
-        timer_label.config(text="Break", font=("Comic Sans", 24, "bold"), fg=RED)
-        countdown(1 * 60)
+        timer_label.config(text="Break", font=("Comic Sans", 24, "bold"), fg=PINK)
+        countdown(SHORT_BREAK_MIN * 60)
     elif REPS == 8:
         timer_label.config(text="Break", font=("Comic Sans", 24, "bold"), fg=RED)
-        countdown(3 * 60)
+        countdown(LONG_BREAK_MIN * 60)
 
 
 # ---------------------------- COUNTDOWN MECHANISM ------------------------------- # 
 def countdown(count):
     global REPS
+    global mark
+    global timer
+
     count_min = math.floor(count / 60)
     count_second = count % 60
     if count_min < 10:
@@ -41,11 +52,15 @@ def countdown(count):
 
     canvas.itemconfig(timer_text, text=f"{count_min}:{count_second}")
     if count > 0:
-        window.after(1000, countdown, count - 1)
+        timer = window.after(1000, countdown, count - 1)
     if count == 0:
         REPS += 1
-        print(REPS)
         start_timer()
+        work_sessions = math.floor(REPS/2)
+        for _ in range(work_sessions):
+            mark += CHECKMARK
+        check_label.config(text=mark)
+
 
 
 # ---------------------------- UI SETUP ------------------------------- #
@@ -64,11 +79,11 @@ timer_label.config(bg=YELLOW, fg=GREEN)
 timer_label.grid(column=1, row=0)
 
 start_button = Button(text="Start", font=("Comic Sans", 12), highlightthickness=0, command=start_timer)
-reset_button = Button(text="Reset", font=("Comic Sans", 12), highlightthickness=0)
+reset_button = Button(text="Reset", font=("Comic Sans", 12), highlightthickness=0, command=reset_timer)
 start_button.grid(column=0, row=2)
 reset_button.grid(column=2, row=2)
 
-check_label = Label(text=CHECKMARK, font=("Comic Sans", 12))
+check_label = Label(text=mark, font=("Comic Sans", 12))
 check_label.config(bg=YELLOW, fg=GREEN)
 check_label.grid(column=1, row=3)
 
